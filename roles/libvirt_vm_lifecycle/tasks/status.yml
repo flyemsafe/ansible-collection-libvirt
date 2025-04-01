@@ -1,0 +1,74 @@
+---
+# Tasks for checking VM status
+
+# Check if inventory file exists if specified
+- name: Check if inventory file exists
+  ansible.builtin.stat:
+    path: "{{ libvirt_vm_inventory_file }}"
+  register: inventory_stat
+  when: libvirt_vm_inventory_file != ""
+
+# Get VM list from inventory if available and requested
+- name: Get VM list from inventory
+  block:
+    - name: Load inventory
+      ansible.builtin.add_host:
+        name: "{{ item }}"
+        groups: "_temp_vm_group"
+      loop: "{{ groups[libvirt_vm_group] | default([]) }}"
+      when: libvirt_vm_target == 'group' or libvirt_vm_target == 'all'
+      
+    - name: Load specific VM from inventory
+      ansible.builtin.add_host:
+        name: "{{ libvirt_vm_target }}"
+        groups: "_temp_vm_group"
+      when: libvirt_vm_target != 'group' and libvirt_vm_target != 'all'
+      
+    - name: Set VM list from inventory
+      ansible.builtin.set_fact:
+        inventory_vm_list: "{{ groups['_temp_vm_group'] | default([]) }}"
+  when: 
+    - libvirt_vm_use_inventory | bool
+    - inventory_stat.stat.exists | default(false)
+
+# Get VM list from libvirt if inventory not available or not used
+- name: Get list of all VMs from libvirt
+  become: true  # Need root to run virsh commands
+  community.libvirt.virt:
+    command: list_vms
+  register: all_vms
+  changed_when: false
+  failed_when: false
+  
+- name: Get list of running VMs from libvirt
+  become: true  # Need root to run virsh commands
+  community.libvirt.virt:
+    command: list_vms
+    state: running
+  register: running_vms
+  changed_when: false
+  failed_when: false
+
+# Determine final VM lists based on inventory, libvirt, and provided libvirt_vm_list
+- name: Set fact for VM lists
+  ansible.builtin.set_fact:
+    libvirt_vm_running_list: >-
+      {{ libvirt_vm_list | intersect(running_vms.list_vms | default([])) if libvirt_vm_list | length > 0 else 
+        (running_vms.list_vms | default([]) if libvirt_vm_manage_all else 
+          (running_vms.list_vms | default([]) | intersect(inventory_vm_list) if libvirt_vm_use_inventory and inventory_vm_list is defined else []))
+      }}
+    libvirt_vm_all_list: >-
+      {{ libvirt_vm_list if libvirt_vm_list | length > 0 else 
+        (all_vms.list_vms | default([]) if libvirt_vm_manage_all else 
+          (all_vms.list_vms | default([]) | intersect(inventory_vm_list) if libvirt_vm_use_inventory and inventory_vm_list is defined else []))
+      }}
+  
+- name: Display VM status
+  ansible.builtin.debug:
+    msg: |
+      VM Status:
+      =========================================
+      VM Source: {{ 'Specific VM List' if libvirt_vm_list | length > 0 else ('All VMs (libvirt_vm_manage_all=true)' if libvirt_vm_manage_all else ('Inventory (' + libvirt_vm_group + ')' if libvirt_vm_use_inventory and inventory_vm_list is defined else 'None')) }}
+      Total VMs: {{ libvirt_vm_all_list | length }}
+      Running VMs: {{ libvirt_vm_running_list | join(', ') if libvirt_vm_running_list | length > 0 else 'None' }}
+  when: libvirt_vm_debug | bool

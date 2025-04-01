@@ -1,0 +1,10 @@
+---
+# Tasks for restarting VMs
+
+# First stop the VMs
+- name: Include stop tasks
+  ansible.builtin.include_tasks: stop.yml
+
+# Then start the VMs
+- name: Include start tasks
+  ansible.builtin.include_tasks: start.yml

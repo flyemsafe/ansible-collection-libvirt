@@ -1,0 +1,44 @@
+---
+# Tasks for starting VMs
+
+# First get the current status of VMs
+- name: Include status tasks
+  ansible.builtin.include_tasks: status.yml
+
+# Start VMs that are not running
+- name: Start VMs that are not running
+  become: true  # Need root to run virsh commands
+  block:
+    - name: Get list of stopped VMs
+      ansible.builtin.set_fact:
+        libvirt_vm_stopped_list: "{{ libvirt_vm_all_list | difference(libvirt_vm_running_list) }}"
+      
+    - name: Display stopped VMs
+      ansible.builtin.debug:
+        msg: "Stopped VMs: {{ libvirt_vm_stopped_list | join(', ') if libvirt_vm_stopped_list | length > 0 else 'None' }}"
+      when: libvirt_vm_debug | bool
+      
+    - name: Start VMs using community.libvirt.virt module
+      community.libvirt.virt:
+        name: "{{ item }}"
+        command: start
+        state: running
+      loop: "{{ libvirt_vm_stopped_list | default([]) }}"
+      register: libvirt_vm_start_results
+      changed_when: libvirt_vm_start_results is changed
+      failed_when: false
+      when: libvirt_vm_stopped_list | default([]) | length > 0
+      
+    - name: Wait for VMs to be fully running
+      community.libvirt.virt:
+        name: "{{ item }}"
+        command: status
+      loop: "{{ libvirt_vm_stopped_list | default([]) }}"
+      register: libvirt_vm_state
+      until: "libvirt_vm_state.status == 'running'"
+      retries: 30
+      delay: 5
+      when: libvirt_vm_stopped_list | default([]) | length > 0
+      changed_when: false
+      failed_when: false
+  when: libvirt_vm_all_list | default([]) | length > 0

@@ -1,0 +1,57 @@
+---
+# Tasks for stopping VMs
+
+# First get the current status of VMs
+- name: Include status tasks
+  ansible.builtin.include_tasks: status.yml
+
+# Stop running VMs
+- name: Stop running VMs
+  become: true  # Need root to run virsh commands
+  block:
+    - name: Display running VMs
+      ansible.builtin.debug:
+        msg: "Running VMs: {{ libvirt_vm_running_list | join(', ') if libvirt_vm_running_list | length > 0 else 'None' }}"
+      when: libvirt_vm_debug | bool
+      
+    - name: Gracefully shutdown VMs
+      community.libvirt.virt:
+        name: "{{ item }}"
+        command: shutdown
+        state: shutdown
+      loop: "{{ libvirt_vm_running_list | default([]) }}"
+      register: libvirt_vm_shutdown_results
+      changed_when: libvirt_vm_shutdown_results is changed
+      failed_when: false
+      when: 
+        - libvirt_vm_running_list | default([]) | length > 0
+        - not libvirt_vm_force_shutdown | bool
+      
+    - name: Wait for VMs to gracefully shutdown
+      community.libvirt.virt:
+        name: "{{ item }}"
+        command: status
+      loop: "{{ libvirt_vm_running_list | default([]) }}"
+      register: libvirt_vm_state
+      until: "libvirt_vm_state.status != 'running'"
+      retries: "{{ (libvirt_vm_shutdown_timeout / 10) | int }}"
+      delay: 10
+      when: 
+        - libvirt_vm_running_list | default([]) | length > 0
+        - not libvirt_vm_force_shutdown | bool
+      changed_when: false
+      failed_when: false
+      
+    - name: Force stop VMs that didn't shutdown gracefully
+      community.libvirt.virt:
+        name: "{{ item }}"
+        command: destroy
+        state: destroyed
+      loop: "{{ libvirt_vm_running_list | default([]) }}"
+      register: libvirt_vm_destroy_results
+      changed_when: libvirt_vm_destroy_results is changed
+      failed_when: false
+      when: 
+        - libvirt_vm_running_list | default([]) | length > 0
+        - libvirt_vm_force_shutdown | bool or (libvirt_vm_state.failed is defined and libvirt_vm_state.failed)
+  when: libvirt_vm_running_list | default([]) | length > 0

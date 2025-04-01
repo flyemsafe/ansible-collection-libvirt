@@ -1,0 +1,17 @@
+namespace: rhdc
+name: libvirt
+version: 1.0.0
+readme: README.md
+authors:
+  - Rodhouse Datacenter Team
+description: Collection for managing libvirt hosts, networks, storage, and virtual machines
+license:
+  - GPL-3.0-or-later
+tags:
+  - libvirt
+  - kvm
+  - virtualization
+repository: https://github.com/rodhouse-datacenter/ansible-collection-libvirt
+documentation: https://github.com/rodhouse-datacenter/ansible-collection-libvirt/docs
+homepage: https://github.com/rodhouse-datacenter/ansible-collection-libvirt
+issues: https://github.com/rodhouse-datacenter/ansible-collection-libvirt/issues

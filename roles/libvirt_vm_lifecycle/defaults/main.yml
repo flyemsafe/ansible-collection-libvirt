@@ -1,0 +1,38 @@
+---
+# Default variables for the libvirt_vm_lifecycle role
+
+# VM lifecycle management variables
+libvirt_vm_action: "status"  # Options: status, start, stop, restart
+libvirt_vm_debug: false
+
+# Default domain (will be overridden by inventory group_vars)
+domain: "example.com"
+
+# Inventory configuration
+libvirt_vm_inventory_file: ""  # Path to inventory file
+libvirt_vm_group: "kvm_vms"    # Group name in inventory containing VMs
+libvirt_vm_target: "all"       # Target VMs: 'all', 'group', or specific VM name
+libvirt_vm_use_inventory: true  # Whether to use inventory for VM management
+
+# VM list for targeted management
+libvirt_vm_list: []  # List of specific VMs to manage (overrides libvirt_vm_target if provided)
+libvirt_vm_manage_all: false  # Whether to manage all VMs when no specific list is provided
+
+# VM credentials for different OS types (should be defined in inventory group_vars)
+libvirt_vm_credentials: []
+# Example format:
+# libvirt_vm_credentials:
+#   - { user: "linux_user", password: "{{ linux_user_pass }}" }
+#   - { user: "root", password: "{{ root_pass }}" }
+
+libvirt_windows_vm_credentials: []
+# Example format:
+# libvirt_windows_vm_credentials:
+#   - { user: "Administrator", password: "{{ admin_password }}" }
+
+# VM shutdown options
+libvirt_vm_shutdown_timeout: 300  # seconds to wait for graceful shutdown
+libvirt_vm_force_shutdown: false  # whether to force shutdown if graceful shutdown fails
+
+# SELinux considerations
+libvirt_vm_selinux_enabled: true  # Whether to apply SELinux contexts for VM operations
