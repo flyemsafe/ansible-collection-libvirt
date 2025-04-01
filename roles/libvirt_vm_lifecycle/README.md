@@ -23,10 +23,10 @@ This role provides tasks for managing the lifecycle of libvirt virtual machines,
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `libvirt_vm_inventory_file` | Path to inventory file | `""` |
-| `libvirt_vm_group` | Group name in inventory containing VMs | `kvm_vms` |
+| `libvirt_vm_use_inventory` | Whether to use inventory at all for VM targeting (if false, will use libvirt directly) | `true` |
+| `libvirt_vm_inventory_file` | Optional path to a custom inventory file (if empty, uses the playbook's inventory) | `""` |
+| `libvirt_vm_group` | Group name in inventory containing VMs (only used if libvirt_vm_use_inventory is true) | `kvm_vms` |
 | `libvirt_vm_target` | Target VMs: 'all', 'group', or specific VM name | `all` |
-| `libvirt_vm_use_inventory` | Whether to use inventory for VM management | `true` |
 
 ### VM Selection
 
