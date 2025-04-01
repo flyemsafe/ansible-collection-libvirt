@@ -9,10 +9,10 @@ libvirt_vm_debug: false
 domain: "example.com"
 
 # Inventory configuration
-libvirt_vm_inventory_file: ""  # Path to inventory file
-libvirt_vm_group: "kvm_vms"    # Group name in inventory containing VMs
+libvirt_vm_use_inventory: true  # Whether to use inventory at all for VM targeting (if false, will use libvirt directly)
+libvirt_vm_inventory_file: ""  # Optional path to a custom inventory file (if empty, uses the playbook's inventory)
+libvirt_vm_group: "kvm_vms"    # Group name in inventory containing VMs (only used if libvirt_vm_use_inventory is true)
 libvirt_vm_target: "all"       # Target VMs: 'all', 'group', or specific VM name
-libvirt_vm_use_inventory: true  # Whether to use inventory for VM management
 
 # VM list for targeted management
 libvirt_vm_list: []  # List of specific VMs to manage (overrides libvirt_vm_target if provided)
