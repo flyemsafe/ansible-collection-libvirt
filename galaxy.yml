@@ -11,7 +11,7 @@ tags:
   - libvirt
   - kvm
   - virtualization
-repository: https://github.com/rodhouse-datacenter/ansible-collection-libvirt
-documentation: https://github.com/rodhouse-datacenter/ansible-collection-libvirt/docs
-homepage: https://github.com/rodhouse-datacenter/ansible-collection-libvirt
-issues: https://github.com/rodhouse-datacenter/ansible-collection-libvirt/issues
+repository: https://github.com/flyemsafe/ansible-collection-libvirt
+documentation: https://github.com/flyemsafe/ansible-collection-libvirt/docs
+homepage: https://github.com/flyemsafe/ansible-collection-libvirt
+issues: https://github.com/flyemsafe/ansible-collection-libvirt/issues
