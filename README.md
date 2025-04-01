@@ -7,7 +7,7 @@ This collection provides roles for managing libvirt hosts, networks, storage, an
 - **libvirt_host_setup**: Configure a host for libvirt (user/group permissions, SELinux contexts, networking, etc.)
 - **libvirt_network**: Manage libvirt networks
 - **libvirt_storage**: Manage libvirt storage pools and volumes
-- **libvirt_vm**: Create and manage VMs
+- **libvirt_vm_provision**: Create and configure VMs (previously libvirt_vm)
 - **libvirt_vm_lifecycle**: Manage VM lifecycle (status, start, stop, restart)
 
 ## Installation
